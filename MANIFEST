@@ -1,0 +1,9 @@
+Changes
+lib/Catalyst/Helper/Model/DBIS.pm
+lib/Catalyst/Model/DBIS.pm
+Makefile.PL
+MANIFEST			This list of files
+README
+t/00-load.t
+t/99-pod.t
+META.yml                                 Module meta-data (added by MakeMaker)
