@@ -27,7 +27,7 @@ sub mk_compclass {
 
 =head1 AUTHOR
 
-Naoki Tomita E<lt>tomita@e8y.netE<gt>
+Naoki Tomita E<lt>tomita@cpan.orgE<gt>
 
 =head1 LICENSE
 

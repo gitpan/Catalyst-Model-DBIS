@@ -6,13 +6,13 @@ use NEXT;
 use DBIx::Simple;
 use SQL::Abstract::Limit;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 sub new {
     my $self = shift->NEXT::new(@_);
     my @info = @{ $self->{connect_info} || [] };
     
-    $self->{dbis} = DBIx::Simple->connect(@info) 
+    $self->{dbis} = DBIx::Simple->connect(@info)
              or die DBIx::Simple->error;
     
     $self->{dbis}->abstract = SQL::Abstract::Limit->new(
@@ -32,13 +32,14 @@ sub new {
 sub dbh   { shift->{dbis}->dbh }
 sub error { shift->{dbis}->error }
 
-no strict 'refs';
-
-for my $func (qw( 
-    begin begin_work commit rollback func last_insert_id 
+for my $func (qw(
+    begin begin_work commit rollback func last_insert_id
     query select insert update delete
     )) {
-    *$func = sub { 
+    
+    no strict 'refs'; ## no critic
+    
+    *$func = sub {
         my $self = shift;
         $self->{dbis}->$func(@_) or die $self->{dbis}->error;
     };
@@ -53,74 +54,81 @@ __END__
 
 =head1 NAME
 
-Catalyst::Model::DBIS - DBIx:Simple Model Class
+Catalyst::Model::DBIS - DBIx::Simple model class
 
 =head1 SYNOPSIS
 
-    $c->model('DBIS')->insert('test_log_db', {
-        user_agent      => $c->req->user_agent,
-        insert_datetime => ['NOW()'],
-    });
-    
-    $c->stash->{users} = $c->model('DBIS')->select(
-        'tickets', '*', {
-            status => $c->req->param('status') || 0,
-        },
-    )->hashes;
-    
-    $c->model('DBIS')->query('SELECT 1 + 1')->into( $c->stash->{answer} );
+  $c->model('DBIS')->insert('test_log_db', {
+      user_agent      => $c->req->user_agent,
+      insert_datetime => ['NOW()'],
+  });
+  
+  $c->stash->{users} = $c->model('DBIS')->select(
+      'tickets', '*', {
+          status => $c->req->param('status') || 0,
+      },
+  )->hashes;
+  
+  $c->model('DBIS')->query('SELECT 1 + 1')->into( $c->stash->{answer} );
 
 =head1 DESCRIPTION
 
-This is the L<DBIx::Simple> model class. C<DBIx::Simple> is smart. I think 
-this model is good for the beginner. But of course you know, If you want 
-more wise and more smart one, L<Catalyst::Model::DBIC::Schema> is 
-recommended. 
+B<Note:> This is a super simple L<DBIx::Simple> model. If you're interested this,
+L<Catalyst::Model::DBIC::Schema> help you I promise.
+B<Catalyst::Model::DBIS will be deprecated>.
 
-=head1 CREATE APP MODEL CLASS 
+=head1 CREATE APP MODEL CLASS
 
 Using helper...(see L<Catalyst::Helper::Model::DBIS>)
 
-    % ./script/myapp_create.pl model DBIS DBIS dsn user password
+  % ./script/myapp_create.pl model DBIS DBIS dsn user password
 
 Or manually create in lib/MyApp/Model/DBIS.pm
     
-    package MyApp::Model::DBIS;
-    use strict;
-    use base 'Catalyst::Model::DBIS';
-    
-    __PACKAGE__->config(
-        connect_info => [ 
-            'dbi:mysql:myapp_db', 
-            'myapp_user', 
-            'myapp_pass', 
-            { RaiseError => 1 },
-            { on_connect_do => [ 'set names utf8' ] },
-        ],
-    );
-    
-    1;
+  package MyApp::Model::DBIS;
+  use strict;
+  use base 'Catalyst::Model::DBIS';
+  
+  __PACKAGE__->config(
+      connect_info => [
+          'dbi:mysql:myapp_db',
+          'myapp_user',
+          'myapp_pass',
+          { RaiseError => 1 },
+          { on_connect_do => [ 'set names utf8' ] },
+      ],
+  );
+  
+  1;
 
-=head1 CONFIGS 
+=head1 CONFIG
 
 In lib/MyApp/Model/DBIS.pm as above, or in myapp.yaml file like this.
 
-    Model::DBIS:
-    connect_info:
-        - dbi:SQLite:dbname=myapp.db
+  Model::DBIS:
+  connect_info:
+      - dbi:SQLite:dbname=myapp.db
 
-=head2 connect_info
+=over 4
 
-List of arguments to C<DBI->connect()>. See L<DBI> for more description.
+=item connect_info
 
-=head3 DBIC's on_connect_do support
+List of arguments to C<< DBI->connect() >>. See L<DBI> for more description.
 
-This module emulates L<DBIx::Class>'s on_connect_do feature. connect_info
-can take a hash at the end. 
+=over 4
+
+=item on_connect_do
+
+This module emulates L<DBIx::Class>'s C<on_connect_do> feature. C<connect_info>
+can take a hash at the end.
+
+=back
+
+=back
 
 =head1 AUTHOR
 
-Naoki Tomita E<lt>tomita@e8y.netE<gt>
+Naoki Tomita E<lt>tomita@cpan.orgE<gt>
 
 =head1 LICENSE
 
